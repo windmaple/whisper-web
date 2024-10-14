@@ -38,14 +38,27 @@ export default function Transcript({ transcribedData }: Props) {
         const blob = new Blob([jsonData], { type: "application/json" });
         saveBlob(blob, "transcript.json");
     };
+    const exportSRT = () => {
+        let chunks = transcribedData?.chunks ?? [];
+        let srtContent = chunks
+            .map((chunk, index) => {
+                const start = chunk.timestamp[0] !== null ? formatAudioTimestamp(chunk.timestamp[0]) : '00:00:00'; // Default value if null
+                const end = chunk.timestamp[1] !== null ? formatAudioTimestamp(chunk.timestamp[1]) : '00:00:00'; // Default value if null
+                return `${index + 1}\n${start} --> ${end}\n${chunk.text}\n`;
+            })
+            .join("\n");
+
+        const blob = new Blob([srtContent], { type: "text/plain" });
+        saveBlob(blob, "transcript.srt");
+    };
 
     // Scroll to the bottom when the component updates
     useEffect(() => {
         if (divRef.current) {
             const diff = Math.abs(
                 divRef.current.offsetHeight +
-                    divRef.current.scrollTop -
-                    divRef.current.scrollHeight,
+                divRef.current.scrollTop -
+                divRef.current.scrollHeight,
             );
 
             if (diff <= 64) {
@@ -85,6 +98,12 @@ export default function Transcript({ transcribedData }: Props) {
                         className='text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 inline-flex items-center'
                     >
                         Export JSON
+                    </button>
+                    <button
+                        onClick={exportSRT}
+                        className='text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 inline-flex items-center'
+                    >
+                        Export SRT
                     </button>
                 </div>
             )}
